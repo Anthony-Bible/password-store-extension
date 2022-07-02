@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-: "${PASSWORD_SHARE_ENDPOINT:=https://dev.password.exchange}"
+: "${PASSWORD_SHARE_ENDPOINT:=https://password.exchange}"
 
 upload_pass() {
 	local -r content=$1
