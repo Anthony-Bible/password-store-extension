@@ -1,7 +1,10 @@
+#!/usr/bin/env bash
+: "${PASSWORD_SHARE_ENDPOINT:=https://dev.password.exchange}"
+
 upload_pass() {
-	endpoint="https://dev.password.exchange"
 	local -r content=$1
 	local -r passphrase=$2
+	local -r endpoint=$PASSWORD_SHARE_ENDPOINT
 	if [[ -z $passphrase ]]; then
 		RESULT=$(curl -d "content=$content&api=on" -L "${endpoint}" 2>&1 | grep -o '"url":"[^"]*' - | grep -o '[^"]*$')
 	else
@@ -19,16 +22,18 @@ prepare_pass() {
 	if [[ ${FIRST_LINE} -gt 0 ]]; then
 		_password="$(pass show "${_path%%.gpg}" 2>/dev/null | head -n 1)"
 
+	elif [[ ${LAST_LINE} -gt 0 ]]; then
+	   	_password="$(pass show "${_path%%.gpg}" 2>/dev/null | tail -n 1)"
 	else
 		_password="$(pass show "${_path%%.gpg}" 2>/dev/null)"
 
 	fi
 	if [[ -z "$_password" ]]; then
 		# Not testing empty passwords
-		printf "%s is empty\n" $_path
+		printf "%s is empty\n" "$_path"
 		return 0
 	else
-		printf "uploading %s\n" $_path
+		printf "uploading %s\n" "$_path"
 		upload_pass "$_password" "$PASSPHRASE"
 	fi
 }
@@ -38,6 +43,7 @@ usage() {
 	Make it easy to share passwords with anyone without an extra subscription or software so even your grandma can use it
 	-p | --passphrase - passphrase to protect webpage
 	-h | --help - Display this help
+	-t | --tail - Only send the last line of the password store item
 	-H | --head - Only send the first line of password store item
 	EOF
 }
@@ -49,7 +55,7 @@ cmd_share_pass() {
 			prepare_pass "$_path"
 		done
 	else
-		cd "$PREFIX"
+		cd "$PREFIX" || exit 1
 		for _path in **/*\.gpg; do
 			prepare_pass "$_path"
 		done
@@ -57,7 +63,7 @@ cmd_share_pass() {
 
 }
 
-while getopts ":hp:H-:" opt; do
+while getopts ":hp:Ht-:" opt; do
 	case "${opt}" in
 	h)
 		usage
@@ -68,6 +74,9 @@ while getopts ":hp:H-:" opt; do
 	H)
 		FIRST_LINE=1
 		;;
+	t)
+	   LAST_LINE=1
+	   ;;
 	-)
 		case "$OPTARG" in
 		
@@ -81,6 +90,9 @@ while getopts ":hp:H-:" opt; do
 			;;
 		head)
 			FIRST_LINE=1
+			;;
+		tail)
+		    LAST_LINE=1
 			;;
 		*)
 			echo >&2 "Invalid long option ${OPTARG}.  Use --help for a help menu."
