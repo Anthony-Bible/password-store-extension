@@ -32,8 +32,7 @@ install:
 	@install -v -m 0755 share.bash "$(shell brew --prefix)/lib/password-store/extensions/share.bash"
 	@echo 
 	@echo 
-	@echo "pass-share is installed successfully $(user)"
-	@echo "To use pass-share run"
+	@echo "pass-share is installed successfully"
 	@echo
 	@echo 
 	@echo
