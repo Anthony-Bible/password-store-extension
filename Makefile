@@ -15,6 +15,18 @@ all:
 	@echo "     curl"
 
 install:
+    uname=$(shell uname -s)
+	ifeq ($(uname), Darwin)
+	@install -v -d /usr/local/share/man/man1
+	@install -v -m 0644 man/pass-extension-share.1 /usr/local/share/man/man1/pass-share.1
+	@install -v -d "$(shell brew --prefix)/lib/password-store/extensions"
+	@install -v -m 0755 share.bash "$(shell brew --prefix)/lib/password-store/extensions/share.bash"
+	@echo 
+	@echo "pass-share is installed successfully"
+	@echo "To use pass-share run"
+	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\""
+	@echo
+	else
 	@install -v -d "$(DESTDIR)$(MANDIR)/man1"
 	@install -v -m 0644 man/pass-extension-share.1 "$(DESTDIR)$(MANDIR)/man1/pass-share.1"
 	@install -v -d "$(DESTDIR)$(SYSTEM_EXTENSION_DIR)/"
@@ -23,7 +35,7 @@ install:
 	@echo
 	@echo "pass-share is installed successfully"
 	@echo
-
+    endif
 uninstall:
 	@rm -vrf \
 		"$(DESTDIR)$(SYSTEM_EXTENSION_DIR)/share.bash" \
