@@ -4,7 +4,16 @@ LIBDIR ?= $(PREFIX)/lib
 SYSTEM_EXTENSION_DIR ?= $(LIBDIR)/password-store/extensions
 MANDIR ?= $(PREFIX)/share/man
 BASHCOMPDIR ?= /etc/bash_completion.d
-
+uname=$(shell uname -s)
+user=$(SUDO_USER)
+ifndef user
+   user=$(USER)
+endif
+ifeq "$(uname)" "Darwin"
+user_shell=$(shell finger $(user) | grep -oP 'Shell: \K.*')
+else
+user_shell=$(shell getent passwd $(user) | awk -F: '{print $NF}')
+endif
 all:
 	@echo "pass-share is a shell script and does not need compilation, it can be simply executed."
 	@echo ""
@@ -15,8 +24,7 @@ all:
 	@echo "     curl"
 
 install:
-    uname=$(shell uname -s)
-	ifeq ($(uname), Darwin)
+	ifeq "$(uname)" "Darwin"
 	@install -v -d /usr/local/share/man/man1
 	@install -v -m 0644 man/pass-extension-share.1 /usr/local/share/man/man1/pass-share.1
 	@install -v -d "$(shell brew --prefix)/lib/password-store/extensions"
@@ -24,7 +32,8 @@ install:
 	@echo 
 	@echo "pass-share is installed successfully"
 	@echo "To use pass-share run"
-	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\""
+	@echo $(user_shell)
+	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\" >> ~/.bashrc"
 	@echo
 	else
 	@install -v -d "$(DESTDIR)$(MANDIR)/man1"
