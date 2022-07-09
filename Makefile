@@ -6,8 +6,9 @@ MANDIR ?= $(PREFIX)/share/man
 BASHCOMPDIR ?= /etc/bash_completion.d
 uname=$(shell uname -s)
 user=$(SUDO_USER)
-user ?= $(USER)
-
+ifeq ($(strip $(user)),)
+user = $(USER)
+endif
 ifeq "$(uname)" "Darwin"
 user_shell=$(shell finger $(user) | grep -o 'Shell: .*' | awk -F"/" '{print $$NF}')
 else
