@@ -35,12 +35,10 @@ install:
 	@install -v -m 0644 man/pass-extension-share.1 /usr/local/share/man/man1/pass-share.1
 	@install -v -d "$(shell brew --prefix)/lib/password-store/extensions"
 	@install -v -m 0755 share.bash "$(shell brew --prefix)/lib/password-store/extensions/share.bash"
-	@echo "$(SUDO_USER)"
-	@echo "${USER}"
+    @echo
 	@echo "pass-share is installed successfully $(user)"
 	@echo "To use pass-share run"
-	@echo $(user_shell)
-	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\" >> ~/.bashrc"
+	@echo 
 	@echo
     else
 	@install -v -d "$(DESTDIR)$(MANDIR)/man1"
