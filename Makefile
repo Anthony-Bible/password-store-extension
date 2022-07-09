@@ -7,12 +7,6 @@ BASHCOMPDIR ?= /etc/bash_completion.d
 uname=$(shell uname -s)
 user=$(SUDO_USER)
 user ?= $(USER)
-# ifndef user
-# 	user=$(USER)
-# endif
-# ifeq ($(strip $(user)),)
-#   user:=$(USER)
-# endif
 
 ifeq "$(uname)" "Darwin"
 user_shell=$(shell finger $(user) | grep -o 'Shell: .*' | awk -F"/" '{print $$NF}')
@@ -35,9 +29,11 @@ install:
 	@install -v -m 0644 man/pass-extension-share.1 /usr/local/share/man/man1/pass-share.1
 	@install -v -d "$(shell brew --prefix)/lib/password-store/extensions"
 	@install -v -m 0755 share.bash "$(shell brew --prefix)/lib/password-store/extensions/share.bash"
-    @echo
+	@echo 
+	@echo 
 	@echo "pass-share is installed successfully $(user)"
 	@echo "To use pass-share run"
+	@echo
 	@echo 
 	@echo
     else
@@ -54,11 +50,16 @@ install:
 	@echo
     endif
     ifeq "$(user_shell)" "bash"
+	@echo "Run the folowing to use pass-share:"
 	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\" >> ~/.bashrc"
-    else "$(user_shell)""zsh"
+	@echo
+    else ifeq "$(user_shell)" "zsh"
+	@echo "Run the folowing to use pass-share:"
 	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\" >> ~/.zshrc"
+	@echo
     else
 	@echo "set PASSWORD_STORE_EXTENSIONS_ENABLED=true to use password-share"
+	@echo 
     endif
 
 uninstall:
