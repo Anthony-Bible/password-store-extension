@@ -10,7 +10,7 @@ ifndef user
    user=$(USER)
 endif
 ifeq "$(uname)" "Darwin"
-user_shell=$(shell finger $(user) | grep -oP 'Shell: \K.*')
+user_shell=$(shell finger $(user) | grep -o 'Shell: .*' | awk '{print $2}')
 else
 user_shell=$(shell getent passwd $(user) | awk -F: '{print $NF}')
 endif
@@ -24,7 +24,7 @@ all:
 	@echo "     curl"
 
 install:
-	ifeq "$(uname)" "Darwin"
+    ifeq "$(uname)" "Darwin"
 	@install -v -d /usr/local/share/man/man1
 	@install -v -m 0644 man/pass-extension-share.1 /usr/local/share/man/man1/pass-share.1
 	@install -v -d "$(shell brew --prefix)/lib/password-store/extensions"
@@ -35,7 +35,7 @@ install:
 	@echo $(user_shell)
 	@echo "echo \"export PASSWORD_STORE_EXTENSIONS_ENABLED=true\" >> ~/.bashrc"
 	@echo
-	else
+    else
 	@install -v -d "$(DESTDIR)$(MANDIR)/man1"
 	@install -v -m 0644 man/pass-extension-share.1 "$(DESTDIR)$(MANDIR)/man1/pass-share.1"
 	@install -v -d "$(DESTDIR)$(SYSTEM_EXTENSION_DIR)/"
