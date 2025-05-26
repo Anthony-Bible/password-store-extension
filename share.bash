@@ -1,17 +1,31 @@
 #!/usr/bin/env bash
-: "${PASSWORD_SHARE_ENDPOINT:=https://password.exchange}"
+: "${PASSWORD_SHARE_ENDPOINT:=https://password.exchange/api/v1}"
 
 upload_pass() {
 	local -r content=$1
 	local -r passphrase=$2
-	local -r endpoint=$PASSWORD_SHARE_ENDPOINT
+	local -r endpoint="${PASSWORD_SHARE_ENDPOINT}/messages"
+	
+	# Prepare JSON payload
+	local json_payload
 	if [[ -z $passphrase ]]; then
-		RESULT=$(curl -d "content=$content&api=on" -L "${endpoint}" 2>&1 | grep -o '"url":"[^"]*' - | grep -o '[^"]*$')
+		json_payload=$(jq -n --arg content "$content" '{content: $content}')
 	else
-		RESULT=$(curl -d "content=$content&other_lastname=$passphrase&api=on" -L "${endpoint}" 2>&1 | grep -o '"url":"[^"]*' - | grep -o '[^"]*$')
+		json_payload=$(jq -n --arg content "$content" --arg passphrase "$passphrase" '{content: $content, passphrase: $passphrase}')
 	fi
+	
+	# Make API call
+	local response
+	response=$(curl -s -X POST \
+		-H "Content-Type: application/json" \
+		-d "$json_payload" \
+		"${endpoint}" 2>&1)
+	
+	# Extract URL from response
+	RESULT=$(echo "$response" | jq -r '.url // empty' 2>/dev/null)
+	
 	if [[ -z $RESULT ]]; then
-		printf "something went wrong with uploading: %s" "${RESULT}"
+		printf "something went wrong with uploading: %s\n" "${response}"
 	else
 		printf "\n%s\n" "${RESULT}"
 	fi
