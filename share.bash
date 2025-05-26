@@ -14,20 +14,31 @@ upload_pass() {
 		json_payload=$(jq -n --arg content "$content" --arg passphrase "$passphrase" '{content: $content, passphrase: $passphrase}')
 	fi
 	
-	# Make API call
-	local response
-	response=$(curl -s -X POST \
+	# Make API call with timeout and status code checking
+	local response http_code
+	response=$(curl -s --max-time 30 -w "%{http_code}" -X POST \
 		-H "Content-Type: application/json" \
 		-d "$json_payload" \
 		"${endpoint}" 2>&1)
+	
+	# Extract HTTP status code from end of response
+	http_code="${response: -3}"
+	response="${response%???}"
+	
+	# Check HTTP status code
+	if [[ "$http_code" != "200" && "$http_code" != "201" ]]; then
+		printf "API request failed with HTTP %s: %s\n" "$http_code" "$response" >&2
+		return 1
+	fi
 	
 	# Extract URL from response
 	RESULT=$(echo "$response" | jq -r '.url // empty' 2>/dev/null)
 	
 	if [[ -z $RESULT ]]; then
-		printf "something went wrong with uploading: %s\n" "${response}"
+		printf "API request failed or returned invalid response: %s\n" "$response" >&2
+		return 1
 	else
-		printf "\n%s\n" "${RESULT}"
+		printf "\n%s\n" "$RESULT"
 	fi
 }
 prepare_pass() {
