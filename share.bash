@@ -16,14 +16,14 @@ upload_pass() {
 	
 	# Make API call with timeout and status code checking
 	local response http_code
-	response=$(curl -s --max-time 30 -w "%{http_code}" -X POST \
+	response=$(curl -s --max-time 30 -w "\n%{http_code}" -X POST \
 		-H "Content-Type: application/json" \
 		-d "$json_payload" \
 		"${endpoint}" 2>&1)
 	
-	# Extract HTTP status code from end of response
-	http_code="${response: -3}"
-	response="${response%???}"
+	# Extract HTTP status code and response body
+	http_code=$(echo "$response" | tail -n 1)
+	response=$(echo "$response" | sed '$d')
 	
 	# Check HTTP status code
 	if [[ "$http_code" != "200" && "$http_code" != "201" ]]; then
